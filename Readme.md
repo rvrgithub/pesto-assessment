@@ -6,7 +6,7 @@
  * installation
   - npx create-react-app
   - Run - npm start
-  
+  - react-hook-form
 # Backend Side
 - start project- npm init -y
 - run - npm run start
@@ -30,5 +30,4 @@
        - connection.js
    
                 
-
 

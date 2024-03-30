@@ -32,7 +32,7 @@ exports.getTodo = async (req, res) => {
         console.log("page", page, "limit", limit, "search", search);
         const query = {};
         if (search) {
-            query.stauts = { $regex: search, $options: 'i' }; // Case-insensitive regex search
+            query.status = { $regex: search, $options: 'i' }; // Case-insensitive regex search
         }
         const count = await Todo.countDocuments(query);
         const skip = (parseInt(page) - 1) * parseInt(limit);
