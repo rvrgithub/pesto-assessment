@@ -4,15 +4,20 @@ import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import { MenuItem, Select } from '@mui/material';
 import { useForm } from 'react-hook-form';
+import * as yup from 'yup';
+import { yupResolver } from '@hookform/resolvers/yup';
+import {  enqueueSnackbar } from 'notistack';
 export default function FormDialog({ setOpen, open }) {
-  const { register, handleSubmit, reset } = useForm();
+  const { register, handleSubmit, reset, formState: { errors } } = useForm({
+    resolver: yupResolver(validationSchema), // Using Yup for validation
+  });
+
   const handleClose = () => {
     setOpen(false);
   };
+
   const hanldeDataSubmit = (data) => {
     console.log("data", data)
     fetch(`http://localhost:4000/post-todo`, {
@@ -27,6 +32,7 @@ export default function FormDialog({ setOpen, open }) {
         return response.json();
       })
       .then(data => {
+        enqueueSnackbar("Data added Successfully !!",{variant:"success"})
         console.log('Data sent successfully:', data);
         reset();
         handleClose();
@@ -34,12 +40,8 @@ export default function FormDialog({ setOpen, open }) {
       .catch(error => {
         console.error('Error sending data:', error);
       });
+  };
 
-  }
-
-  React.useEffect(() => {
-    hanldeDataSubmit();
-  }, [])
   return (
     <React.Fragment>
       <Dialog
@@ -50,11 +52,10 @@ export default function FormDialog({ setOpen, open }) {
         }}
         onSubmit={handleSubmit(hanldeDataSubmit)}
       >
-        <DialogTitle>Create You Todo</DialogTitle>
+        <DialogTitle>Create Your Todo</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
-            required
             {...register('title')}
             margin="dense"
             id="title"
@@ -63,10 +64,11 @@ export default function FormDialog({ setOpen, open }) {
             type="text"
             fullWidth
             variant="standard"
+            error={!!errors.title} // Checking for errors
+            helperText={errors.title ? errors.title.message : ''}
           />
           <TextField
             autoFocus
-            required
             margin="dense"
             id="description"
             name="description"
@@ -75,24 +77,21 @@ export default function FormDialog({ setOpen, open }) {
             fullWidth
             variant="standard"
             {...register('description')}
+            error={!!errors.description} // Checking for errors
+            helperText={errors.description ? errors.description.message : ''}
           />
-          {/* <Select
-          // value={selectedOption}
-          >
-            <MenuItem disabled value="" style={{ color: 'black' }}>
-              Status
-            </MenuItem>
-            <MenuItem value="all">All</MenuItem>
-            <MenuItem value="pending">Pending</MenuItem>
-            <MenuItem value="success">Success</MenuItem>
-          </Select> */}
-
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
-          <Button type="submit">Subscribe</Button>
+          <Button type="submit" color="primary" variant="contained">ADD</Button>
         </DialogActions>
       </Dialog>
     </React.Fragment>
   );
 }
+
+// Define your validation schema using Yup
+const validationSchema = yup.object().shape({
+  title: yup.string().required('Title is required'),
+  description: yup.string().required('Description is required'),
+});

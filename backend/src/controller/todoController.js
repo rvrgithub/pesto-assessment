@@ -38,7 +38,7 @@ exports.getTodo = async (req, res) => {
         const skip = (parseInt(page) - 1) * parseInt(limit);
         const response = await Todo.find(query)
             .skip(skip)
-            .limit(parseInt(limit));
+            .limit(parseInt(limit)).sort({ createdAt: -1 });
 
         return res.status(200).send({
             status: true,
