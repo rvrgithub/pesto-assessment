@@ -23,19 +23,23 @@ const useStyles = makeStyles((theme) => ({
             textAlign: 'center', // Center align on small screens
         },
     },
-    select: {
-        minWidth: 120,
-        // backgroundColor: '#ecf3fe',
-        // color: 'white',
-        borderRadius: "5px",
-        margin: "0 10px"
-    },
     button: {
         marginLeft: theme.spacing(1), // Add margin between select and button
     },
 
     textField: {
         marginRight: theme.spacing(1), // Adjust as needed
+    },
+    resetButton: {
+        animation: '$spin 2s linear infinite',
+    },
+    '@keyframes spin': {
+        '0%': {
+            transform: 'rotate(0deg)',
+        },
+        '100%': {
+            transform: 'rotate(360deg)',
+        },
     },
 }));
 const columns = [
@@ -156,15 +160,24 @@ export const TableComponent = () => {
         }
 
     }
-
+    const [reset, setReset] = useState(false)
+    const resetButton = () => {
+        setReset(true);
+        setSearch("")
+    }
     useEffect(() => {
         getData();
         SearchStatus();
-    }, [page, rowsPerPage, search, open]);
+
+        const interval = setInterval(() => {
+            setReset(false);
+        }, 1000); // Reset after 1 second
+
+        return () => clearInterval(interval); // Cleanup function to clear interval on component unmount
+    }, [page, rowsPerPage, search, open, reset]);
     return (
         <Container sx={{ width: "100%", overflow: "hidden" }}>
             <FormDialog setOpen={setOpen} open={open} />
-
             <Box className={classes.root}>
                 <Typography variant="h4" gutterBottom>
                     Todo List
@@ -176,46 +189,26 @@ export const TableComponent = () => {
                         </Button>
                     </Grid>
                     <Grid item xs={12} sm={8} container justifyContent="flex-end">
-                        {/* <FormControl variant="standard" sx={{ m: 1, minWidth: 120 }}>
+                        <FormControl variant="standard" sx={{ m: 1, minWidth: 120 }}>
                             <InputLabel id="demo-simple-select-standard-label">Status</InputLabel>
                             <Select
                                 labelId="demo-simple-select-standard-label"
-
                                 id="demo-simple-select-standard"
-                                value={search}
-                                className={classes.select}
-                                label="Stauts"
+                                value={"search"}
                                 onChange={(e) => handleFilterValue(e)}
+                                label="Search"
                             >
-                                <MenuItem disabled value="" style={{ color: "black" }}>
+                                <MenuItem disabled value="">
                                     Status
                                 </MenuItem>
                                 <MenuItem value="inprogress">Inprogress</MenuItem>
                                 <MenuItem value="pending">Pending</MenuItem>
                                 <MenuItem value="success">Done</MenuItem>
                             </Select>
-                        </FormControl> */}
-
-
-
-                        <FormControl variant="standard" sx={{ m: 1, minWidth: 120 }}>
-                            <InputLabel id="demo-simple-select-standard-label">Age</InputLabel>
-                            <Select
-                                labelId="demo-simple-select-standard-label"
-                                id="demo-simple-select-standard"
-                                value={"age"}
-                                // onChange={handleChange}
-                                label="Age"
-                            >
-                                <MenuItem value="">
-                                    <em>None</em>
-                                </MenuItem>
-                                <MenuItem value={10}>Ten</MenuItem>
-                                <MenuItem value={20}>Twenty</MenuItem>
-                                <MenuItem value={30}>Thirty</MenuItem>
-                            </Select>
                         </FormControl>
-                        <RestartAltIcon onClick={() => setSearch("")} />
+                        <IconButton onClick={resetButton} className={reset ? classes.resetButton : ""}>
+                            <RestartAltIcon />
+                        </IconButton>
                     </Grid>
                 </Grid>
             </Box>
@@ -326,11 +319,6 @@ export const TableComponent = () => {
                                     : "No Data found"}
                             </TableBody>
                             :
-                            // <Typography variant="h4" gutterBottom>
-                            //     No Data found
-                            // </Typography>
-
-
                             <Box display="flex"
                                 alignItems="center"
                                 justifyContent="center"
