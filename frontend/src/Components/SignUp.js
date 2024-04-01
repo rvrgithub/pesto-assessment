@@ -8,10 +8,13 @@ import Checkbox from '@mui/material/Checkbox';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import * as yup from 'yup';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { Link } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
 
 function Copyright(props) {
   return (
@@ -30,14 +33,10 @@ function Copyright(props) {
 const defaultTheme = createTheme();
 
 export const SignUp = () => {
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
-    });
-  };
+  const { register, handleSubmit, reset, formState: { errors } } = useForm({
+    resolver: yupResolver(validationSchema), // Using Yup for validation
+  });
+
 
   return (
     <ThemeProvider theme={defaultTheme}>
@@ -57,7 +56,7 @@ export const SignUp = () => {
           <Typography component="h1" variant="h5">
             Sign up
           </Typography>
-          <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}>
+          <Box component="form" onSubmit={handleSubmit((data) => (console.log("data", data)))} sx={{ mt: 3 }}>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
                 <TextField
@@ -65,9 +64,12 @@ export const SignUp = () => {
                   name="firstName"
                   required
                   fullWidth
+                  {...register('firstName')}
                   id="firstName"
                   label="First Name"
                   autoFocus
+                  error={!!errors.firstName} // Checking for errors
+                  helperText={errors.firstName ? errors.firstName.message : ''}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -78,6 +80,9 @@ export const SignUp = () => {
                   label="Last Name"
                   name="lastName"
                   autoComplete="family-name"
+                  {...register('lastName')}
+                  error={!!errors.lastName} // Checking for errors
+                  helperText={errors.lastName ? errors.lastName.message : ''}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -88,6 +93,9 @@ export const SignUp = () => {
                   label="Email Address"
                   name="email"
                   autoComplete="email"
+                  {...register('email')}
+                  error={!!errors.email} // Checking for errors
+                  helperText={errors.email ? errors.email.message : ''}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -99,14 +107,17 @@ export const SignUp = () => {
                   type="password"
                   id="password"
                   autoComplete="new-password"
+                  {...register('password')}
+                  error={!!errors.password} // Checking for errors
+                  helperText={errors.password ? errors.password.message : ''}
                 />
               </Grid>
-              <Grid item xs={12}>
+              {/* <Grid item xs={12}>
                 <FormControlLabel
                   control={<Checkbox value="allowExtraEmails" color="primary" />}
                   label="I want to receive inspiration, marketing promotions and updates via email."
                 />
-              </Grid>
+              </Grid> */}
             </Grid>
             <Button
               type="submit"
@@ -127,6 +138,16 @@ export const SignUp = () => {
         </Box>
         <Copyright sx={{ mt: 5 }} />
       </Container>
-    </ThemeProvider>
+    </ThemeProvider >
   );
 }
+
+
+
+// Define your validation schema using Yup
+const validationSchema = yup.object().shape({
+  firstName: yup.string().required('FirstName is required'),
+  lastName: yup.string().required('Last Name is required'),
+  passowrd: yup.string().required('Password is required'),
+  email: yup.string().required('Email is required'),
+});
