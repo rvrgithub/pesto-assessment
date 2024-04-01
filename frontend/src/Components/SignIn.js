@@ -12,7 +12,11 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import * as yup from 'yup';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { enqueueSnackbar } from 'notistack';
 
 function Copyright(props) {
     return (
@@ -32,13 +36,34 @@ function Copyright(props) {
 const defaultTheme = createTheme();
 
 export const SignIn = () => {
-    const handleSubmit = (event) => {
-        event.preventDefault();
-        const data = new FormData(event.currentTarget);
-        console.log({
-            email: data.get('email'),
-            password: data.get('password'),
-        });
+    const navigate = useNavigate()
+    const { register, handleSubmit, reset, formState: { errors } } = useForm({
+        resolver: yupResolver(validationSchema), // Using Yup for validation
+    });
+
+    const handleSignin = (data) => {
+        fetch(`http://localhost:4000/signin`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok', response.massage);
+                }
+                return response.json();
+            })
+            .then((data) => {
+                if (data.status == true) {
+                    enqueueSnackbar("Sign In Successfully !!", { variant: "success" })
+                    localStorage.setItem("Token", data.token);
+                    navigate("/");
+                } else {
+                    enqueueSnackbar(data.massage, { variant: "error" })
+                    navigate("/sign-up")
+                }
+            })
+            .catch((error) => enqueueSnackbar(error.message, { variant: "error" }));
     };
 
     return (
@@ -59,26 +84,30 @@ export const SignIn = () => {
                     <Typography component="h1" variant="h5">
                         Sign in
                     </Typography>
-                    <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
+                    <Box component="form" onSubmit={handleSubmit(handleSignin)} noValidate sx={{ mt: 1 }}>
                         <TextField
-                            margin="normal"
                             required
                             fullWidth
                             id="email"
                             label="Email Address"
                             name="email"
+                            type='email'
                             autoComplete="email"
-                            autoFocus
+                            {...register('email')}
+                            error={!!errors.email} // Checking for errors
+                            helperText={errors.email ? errors.email.message : ''}
                         />
                         <TextField
-                            margin="normal"
                             required
                             fullWidth
                             name="password"
-                            label="Password"
+                            label="Enter 8 Digit Password"
                             type="password"
                             id="password"
-                            autoComplete="current-password"
+                            autoComplete="new-password"
+                            {...register('password')}
+                            error={!!errors.password} // Checking for errors
+                            helperText={errors.password ? errors.password.message : ''}
                         />
                         <FormControlLabel
                             control={<Checkbox value="remember" color="primary" />}
@@ -93,11 +122,6 @@ export const SignIn = () => {
                             Sign In
                         </Button>
                         <Grid container>
-                            {/* <Grid item xs>
-                                <Link href="#" variant="body2">
-                                    Forgot password?
-                                </Link>
-                            </Grid> */}
                             <Grid item>
                                 <Link to="/sign-up" variant="body2">
                                     {"Don't have an account? Sign Up"}
@@ -111,3 +135,10 @@ export const SignIn = () => {
         </ThemeProvider>
     );
 }
+
+
+// Define your validation schema using Yup
+const validationSchema = yup.object().shape({
+    password: yup.string().required('Password is required'),
+    email: yup.string().required('Email is required'),
+});

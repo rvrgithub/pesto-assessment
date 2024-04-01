@@ -12,9 +12,10 @@ import * as yup from 'yup';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { enqueueSnackbar } from 'notistack';
 
 function Copyright(props) {
   return (
@@ -33,11 +34,37 @@ function Copyright(props) {
 const defaultTheme = createTheme();
 
 export const SignUp = () => {
+  const navigate = useNavigate()
   const { register, handleSubmit, reset, formState: { errors } } = useForm({
     resolver: yupResolver(validationSchema), // Using Yup for validation
   });
 
 
+  const handleSignup = (data) => {
+    console.log("data", data)
+    fetch(`http://localhost:4000/signup`, {
+      method: "POST",
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok', response.massage);
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.status) {
+          enqueueSnackbar("Sign Up Successfully !!", { variant: "success" })
+        } else {
+          enqueueSnackbar(data.massage, { variant: "error" })
+        }
+        navigate("/sign-in")
+      })
+      .catch(error => enqueueSnackbar(error.message, { variant: "error" }));
+  }
+
+  // console.log("register", register)
   return (
     <ThemeProvider theme={defaultTheme}>
       <Container component="main" maxWidth="xs">
@@ -56,7 +83,10 @@ export const SignUp = () => {
           <Typography component="h1" variant="h5">
             Sign up
           </Typography>
-          <Box component="form" onSubmit={handleSubmit((data) => (console.log("data", data)))} sx={{ mt: 3 }}>
+          <Box component="form"
+            onSubmit={handleSubmit(handleSignup)}
+            // onSubmit={handleSignup}
+            sx={{ mt: 3 }}>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
                 <TextField
@@ -79,6 +109,7 @@ export const SignUp = () => {
                   id="lastName"
                   label="Last Name"
                   name="lastName"
+                  type="Text"
                   autoComplete="family-name"
                   {...register('lastName')}
                   error={!!errors.lastName} // Checking for errors
@@ -92,6 +123,7 @@ export const SignUp = () => {
                   id="email"
                   label="Email Address"
                   name="email"
+                  type='email'
                   autoComplete="email"
                   {...register('email')}
                   error={!!errors.email} // Checking for errors
@@ -103,7 +135,7 @@ export const SignUp = () => {
                   required
                   fullWidth
                   name="password"
-                  label="Password"
+                  label="Enter 8 Digit Password"
                   type="password"
                   id="password"
                   autoComplete="new-password"
@@ -147,7 +179,7 @@ export const SignUp = () => {
 // Define your validation schema using Yup
 const validationSchema = yup.object().shape({
   firstName: yup.string().required('FirstName is required'),
-  lastName: yup.string().required('Last Name is required'),
-  passowrd: yup.string().required('Password is required'),
+  lastName: yup.string().required('LastName is required'),
+  password: yup.string().required('Password is required'),
   email: yup.string().required('Email is required'),
 });

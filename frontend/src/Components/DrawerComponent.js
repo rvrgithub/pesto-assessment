@@ -21,6 +21,7 @@ import MailIcon from '@mui/icons-material/Mail';
 import LogoutIcon from '@mui/icons-material/Logout';
 import LoginIcon from '@mui/icons-material/Login';
 import { Link } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 const drawerWidth = 240;
 const AppBar = styled(MuiAppBar, {
   shouldForwardProp: (prop) => prop !== 'open',
@@ -51,7 +52,7 @@ const DrawerHeader = styled('div')(({ theme }) => ({
 export const DrawerComponent = () => {
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
-
+  let navigate = useNavigate();
   const handleDrawerOpen = () => {
     setOpen(true);
   };
@@ -104,7 +105,12 @@ export const DrawerComponent = () => {
             <ListItem key={text} disablePadding>
               <ListItemButton>
                 <ListItemIcon>
-                  {index % 2 === 0 ? <Link to="/sign-in">  <LoginIcon /></Link> : <LogoutIcon />}
+                  {index % 2 === 0 ? <Link to="/sign-in">  <LoginIcon /></Link> : <LogoutIcon onClick={() => {
+                    localStorage.clear()
+                    navigate("/sign-in");
+                  }
+                  }
+                  />}
                 </ListItemIcon>
                 <ListItemText primary={text} />
               </ListItemButton>
