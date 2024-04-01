@@ -13,16 +13,31 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { makeStyles } from "@material-ui/core/styles";
 import Select from "@material-ui/core/Select";
 import MenuItem from "@material-ui/core/MenuItem";
-import { Box, Button, CircularProgress, Container, FormControl, Grid, IconButton, InputLabel, Menu, Typography } from "@mui/material";
+import {
+    Box,
+    Button,
+    CircularProgress,
+    Container,
+    FormControl,
+    Grid,
+    IconButton,
+    InputLabel,
+    Typography,
+} from "@mui/material";
 import FormDialog from "./FormDialog";
-import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import RestartAltIcon from "@mui/icons-material/RestartAlt";
+import { enqueueSnackbar } from "notistack";
+import { DrawerComponent } from "./DrawerComponent";
+import { token } from "../App";
+
 const useStyles = makeStyles((theme) => ({
     root: {
         padding: theme.spacing(2), // Add padding to the root container
-        [theme.breakpoints.down('sm')]: {
-            textAlign: 'center', // Center align on small screens
+        [theme.breakpoints.down("sm")]: {
+            textAlign: "center", // Center align on small screens
         },
     },
+
     button: {
         marginLeft: theme.spacing(1), // Add margin between select and button
     },
@@ -67,9 +82,22 @@ const columns = [
 ];
 
 export const TableComponent = () => {
+    // .................. States .........................
     const [page, setPage] = useState(0);
     const [search, setSearch] = useState("");
     const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [editId, setEditId] = useState();
+    const [loader, setLoader] = useState(true);
+    const [data, setData] = useState([]);
+    const [edit, setEdit] = useState(false);
+    const [editValue, setEditValue] = useState([]);
+    const [open, setOpen] = useState(false);
+    const [anchorEl, setAnchorEl] = useState(null);
+    const [reset, setReset] = useState(false)
+
+    // ................. Variables .......................
+    const classes = useStyles();
+    // ..................funciton ...................
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
     };
@@ -79,14 +107,16 @@ export const TableComponent = () => {
         setPage(0);
     };
 
-    const [data, setData] = useState([]);
-    const classes = useStyles();
 
     const getData = () => {
         console.log("");
         fetch(
             `http://localhost:4000/get-todo?page=${page + 1
-            }&limit=${rowsPerPage}&search=${search}`
+            }&limit=${rowsPerPage}&search=${search}`,{
+                headers:{
+                Authorization: `Bearer ${token}`,
+        
+                }}
         )
             .then((res) => res.json())
             .then((data) => setData(data))
@@ -96,13 +126,21 @@ export const TableComponent = () => {
     const deleteTodo = (id) => {
         console.log("id", id);
 
-        fetch(`http://localhost:4000/delete-todo/${id}`, { method: "DELETE" })
+        fetch(`http://localhost:4000/delete-todo/${id}`, { method: "DELETE",
+            headers:{
+            Authorization: `Bearer ${token}`,
+    
+            } })
             .then((res) => res.json())
-            .then(() => getData())
-            .catch((error) => console.log("error", error));
+            .then(() => {
+                enqueueSnackbar("Data Delete Successfully !!", { variant: "success" })
+                getData()
+            })
+            .catch((error) => enqueueSnackbar(error.message, { variant: "error" })
+            );
     };
 
-    const [open, setOpen] = useState(false);
+
 
     const createTodo = () => {
         setOpen(true);
@@ -121,7 +159,6 @@ export const TableComponent = () => {
         }
     };
 
-    const [anchorEl, setAnchorEl] = useState(null);
 
     const handleClick = (event) => {
         setAnchorEl(event.currentTarget);
@@ -132,71 +169,83 @@ export const TableComponent = () => {
         setAnchorEl(null);
     };
 
-    const handleMenuItemClick = (id, value) => {
-        // Add your edit logic here
-        console.log("targetValue ", value, id);
-        fetch(`http://localhost:4000/update-todo/${id}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                status: value,
-            }),
-        })
-            .then((res) => res.json())
-            .then((data) => console.log("Data", data))
-            .catch((err) => console.log("err", err));
-        handleClose();
-    };
+
+    // const handleEditeValue = (value) => {
+    //     // Add your edit logic here
+    //     console.log("targetValue ", value);
+    //     fetch(`http://localhost:4000/update-todo/${editId}`, {
+    //         method: "PUT",
+    //         headers: { "Content-Type": "application/json" },
+    //         body: JSON.stringify({
+    //             status: value,
+    //         }),
+    //     })
+    //         .then((res) => res.json())
+    //         .then((data) => {
+    //             if (data.status) {
+    //                 enqueueSnackbar("Data Update Successfully !!", { variant: "success" })
+    //                 getData();
+    //             }
+    //         })
+    //         .catch((err) => enqueueSnackbar(err.message, { variant: "error" }));
+    //     handleClose();
+    // };
 
     const handleColor = (value) => {
         // console.log("value", value)
-        if (value == "pending") {
-            return "red"
-        } else if (value == "inprogress") {
-            return "#ffc107"
+        if (value === "pending") {
+            return "red";
+        } else if (value === "inprogress") {
+            return "#ffc107";
+        } else {
+            return "green";
         }
-        else {
-            return "green"
-        }
+    };
 
-    }
-    const [reset, setReset] = useState(false)
     const resetButton = () => {
         setReset(true);
         setSearch("")
     }
+
     useEffect(() => {
+        getData();
+        SearchStatus();
         getData();
         SearchStatus();
 
         const interval = setInterval(() => {
             setReset(false);
+            setLoader(false);
         }, 1000); // Reset after 1 second
 
         return () => clearInterval(interval); // Cleanup function to clear interval on component unmount
-    }, [page, rowsPerPage, search, open, reset]);
+    }, [page, rowsPerPage, search, open]);
     return (
         <Container sx={{ width: "100%", overflow: "hidden" }}>
-            <FormDialog setOpen={setOpen} open={open} />
+            <FormDialog setOpen={setOpen} open={open} editId={editId} edit={edit} />
             <Box className={classes.root}>
-                <Typography variant="h4" gutterBottom>
-                    Todo List
-                </Typography>
+                <DrawerComponent />
                 <Grid container alignItems="center">
                     <Grid item xs={12} sm={4}>
-                        <Button variant="contained" color="primary" onClick={createTodo} className={classes.button}>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={createTodo}
+                            className={classes.button}
+                        >
                             + create
                         </Button>
                     </Grid>
                     <Grid item xs={12} sm={8} container justifyContent="flex-end">
                         <FormControl variant="standard" sx={{ m: 1, minWidth: 120 }}>
-                            <InputLabel id="demo-simple-select-standard-label">Status</InputLabel>
+                            {!search ?
+                                <InputLabel id="demo-simple-select-standard-label" sx={{ position: "relative" }}>Status</InputLabel>
+                                : ""}
                             <Select
                                 labelId="demo-simple-select-standard-label"
                                 id="demo-simple-select-standard"
-                                value={"search"}
+                                value={search}
                                 onChange={(e) => handleFilterValue(e)}
-                                label="Search"
                             >
                                 <MenuItem disabled value="">
                                     Status
@@ -236,7 +285,7 @@ export const TableComponent = () => {
                                 ))}
                             </TableRow>
                         </TableHead>
-                        {data ?
+                        {!loader ? (
                             <TableBody>
                                 {data
                                     ? data?.message?.map((row, rowIndex) => (
@@ -254,21 +303,34 @@ export const TableComponent = () => {
                                                                 ? "left"
                                                                 : "center",
                                                         paddingLeft: "10px",
-                                                        fontWeight: column.id === "title" ? "bold" : ""
+                                                        fontWeight: column.id === "title" ? "bold" : "",
                                                     }}
                                                 >
                                                     {column.id === "status" ? (
-                                                        <Box component={'span'} sx={{ padding: "10px 20px", background: handleColor(row[column.id]), borderRadius: "10px " }}>
+                                                        <Box
+                                                            component={"span"}
+                                                            sx={{
+                                                                padding: "10px 20px",
+                                                                background: handleColor(row[column.id]),
+                                                                borderRadius: "10px ",
+                                                                textAlign: "center",
+                                                            }}
+                                                        >
                                                             {row[column.id]}
                                                         </Box>
-
                                                     ) : column.id === "edit" ? (
                                                         <div>
                                                             <IconButton
                                                                 aria-label="edit"
                                                                 aria-controls="edit-menu"
                                                                 aria-haspopup="true"
-                                                                onClick={handleClick}
+                                                                onClick={(e) => {
+                                                                    handleClick(e);
+                                                                    setEditId(row._id);
+                                                                    setOpen(true);
+                                                                    setEdit(true)
+
+                                                                }}
                                                             >
                                                                 <EditIcon />
                                                             </IconButton>
@@ -281,7 +343,7 @@ export const TableComponent = () => {
                                                             >
                                                                 <DeleteIcon />
                                                             </IconButton>
-                                                            <Menu
+                                                            {/* <Menu
                                                                 id="edit-menu"
                                                                 anchorEl={anchorEl}
                                                                 keepMounted
@@ -290,23 +352,29 @@ export const TableComponent = () => {
                                                             >
                                                                 <MenuItem
                                                                     value="inprogress"
-                                                                    onClick={(e) => handleMenuItemClick(row._id, "inprogress")}
+                                                                    onClick={(e) =>
+                                                                        handleMenuItemClick("inprogress")
+                                                                    }
                                                                 >
                                                                     In progress
                                                                 </MenuItem>
                                                                 <MenuItem
                                                                     value="all"
-                                                                    onClick={() => handleMenuItemClick(row._id, "pending")}
+                                                                    onClick={() =>
+                                                                        handleMenuItemClick("pending")
+                                                                    }
                                                                 >
                                                                     Pending
                                                                 </MenuItem>
                                                                 <MenuItem
                                                                     value="all"
-                                                                    onClick={() => handleMenuItemClick(row._id, "done")}
+                                                                    onClick={() => handleMenuItemClick("done")}
                                                                 >
                                                                     Done
                                                                 </MenuItem>
-                                                            </Menu>
+                                                            </Menu> */}
+                                                            {/* 
+                                                            {!edit ? <FormDialog setOpen={setOpen} open={open} /> : ""} */}
                                                         </div>
                                                     ) : (
                                                         row[column.id]
@@ -314,22 +382,30 @@ export const TableComponent = () => {
                                                 </TableCell>
                                             ))}
                                         </TableRow>
-
                                     ))
-                                    : "No Data found"}
+                                    : <Typography variant="h4" gutterBottom>
+                                        No Data found
+                                    </Typography>}
                             </TableBody>
-                            :
-                            <Box display="flex"
-                                alignItems="center"
-                                justifyContent="center"
-                                height="100px" // Adjust as needed for your layout
-                                border={"1px solid red"}
-                            >
-                                <CircularProgress display="flex"
-                                    alignItems="center"
-                                    justifyContent="center" />
-                            </Box>
-                        }
+                        ) : (
+
+                            <TableHead>
+                                <TableCell colSpan={4}>
+                                    <Box
+                                        display="flex"
+                                        alignItems="center"
+                                        justifyContent="center"
+                                        height="50px" // Adjust as needed for your layout
+                                    >
+                                        <CircularProgress
+                                            display="flex"
+                                            alignItems="center"
+                                            justifyContent="center"
+                                        />
+                                    </Box>
+                                </TableCell>
+                            </TableHead>
+                        )}
                     </Table>
                 </TableContainer>
                 <TablePagination
@@ -346,3 +422,5 @@ export const TableComponent = () => {
         </Container>
     );
 };
+
+

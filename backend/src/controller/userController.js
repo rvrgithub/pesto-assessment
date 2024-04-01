@@ -64,14 +64,14 @@ exports.signup = async (req, res) => {
         } else {
             // .......................create password strong ......
             const hasmapPassword = await bcrypt.hash(password, 10);
-            const response = new User({
+            const data = new User({
                 firstName,
                 lastName,
                 password: hasmapPassword,
                 email,
             });
 
-            await response.save();
+           let response= await data.save();
             return res.status(201).json({
                 status: true,
                 massage: "register succesfully!!",
@@ -145,7 +145,7 @@ exports.signin = async (req, res) => {
                 });
             } else {
                 // ...........................create Token..................................
-                const token = jwt.sign({ id: findUser._id }, "dsjglsdkjhgkldjfg");
+                const token = jwt.sign({ id: findUser._id }, "radhika");
                 console.log("token", token);
                 return res.status(201).json({
                     status: true,

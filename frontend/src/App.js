@@ -4,11 +4,12 @@ import { TableComponent } from './Components/TableComponent';
 import { SignUp } from './Components/SignUp';
 import { SignIn } from './Components/SignIn';
 import { useEffect } from 'react';
+export let token = localStorage.getItem("Token"); 
+
 function App() {
   let navigate = useNavigate();
 
   let getData = async () => {
-    let token = localStorage.getItem("Token");
     if (!token) {
       navigate("/sign-in");
     }

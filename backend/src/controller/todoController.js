@@ -7,7 +7,7 @@ exports.postTodo = async (req, res) => {
     try {
         const { title, description, status } = req.body;
         const response = new Todo({
-            title, description, status
+            title, description, status,user:req.user._id
         });
         await response.save();
         return res.status(201).send({
@@ -36,7 +36,7 @@ exports.getTodo = async (req, res) => {
         }
         const count = await Todo.countDocuments(query);
         const skip = (parseInt(page) - 1) * parseInt(limit);
-        const response = await Todo.find(query)
+        const response = await Todo.find({...query,user:req.user._id})
             .skip(skip)
             .limit(parseInt(limit)).sort({ createdAt: -1 });
 
@@ -63,7 +63,7 @@ exports.updateTodo = async (req, res) => {
     try {
         const id = req.params.id;
         const todoRes = req.body;
-        const response = await Todo.findByIdAndUpdate({ _id: id }, { $set: todoRes }, { returnDocument: 'after' });
+        const response = await Todo.findByIdAndUpdate({ _id: id ,user:req.user._id}, { $set: todoRes }, { returnDocument: 'after' });
         return res.status(201).send({
             status: true,
             message: "update todo",
@@ -85,7 +85,7 @@ exports.deleteTodo = async (req, res) => {
     try {
         const todo_id = req.params.id;
         console.log("id", todo_id);
-        const response = await Todo.findOne({ _id: todo_id })
+        const response = await Todo.findOne({ _id: todo_id,user:req.user._id })
         if (!response) {
             return res.status(201).send({
                 status: false,

@@ -92,7 +92,7 @@ export const SignUp = () => {
                 <TextField
                   autoComplete="given-name"
                   name="firstName"
-                  required
+                    required
                   fullWidth
                   {...register('firstName')}
                   id="firstName"
@@ -104,7 +104,6 @@ export const SignUp = () => {
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
-                  required
                   fullWidth
                   id="lastName"
                   label="Last Name"
@@ -118,7 +117,6 @@ export const SignUp = () => {
               </Grid>
               <Grid item xs={12}>
                 <TextField
-                  required
                   fullWidth
                   id="email"
                   label="Email Address"
@@ -132,7 +130,7 @@ export const SignUp = () => {
               </Grid>
               <Grid item xs={12}>
                 <TextField
-                  required
+                  
                   fullWidth
                   name="password"
                   label="Enter 8 Digit Password"
@@ -178,8 +176,9 @@ export const SignUp = () => {
 
 // Define your validation schema using Yup
 const validationSchema = yup.object().shape({
-  firstName: yup.string().required('FirstName is required'),
-  lastName: yup.string().required('LastName is required'),
-  password: yup.string().required('Password is required'),
-  email: yup.string().required('Email is required'),
+  firstName: yup.string().required('First name is required'),
+  lastName: yup.string().required('Last name is required'),
+  password: yup.string().required('Password is required').length(8, 'Password must be exactly 8 characters long'),
+  email: yup.string().required('Email is required').email().required('Invalid email address'),
 });
+
