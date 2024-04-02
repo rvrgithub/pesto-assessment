@@ -28,7 +28,7 @@ import FormDialog from "./FormDialog";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import { enqueueSnackbar } from "notistack";
 import { DrawerComponent } from "./DrawerComponent";
-import { api,token } from "../App";
+import { api, token } from "../App";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -99,8 +99,9 @@ export const TableComponent = () => {
         })
             .then((res) => res.json())
             .then((data) => {
-                console.log("data",data)
-                setData(data)})
+                console.log("data", data)
+                setData(data)
+            })
             .catch((error) => console.log("error", error));
     };
 
@@ -224,7 +225,7 @@ export const TableComponent = () => {
                                     <TableCell
                                         key={column.id}
                                         align={column.align}
-                                        style={{ minWidth: column.minWidth, background: "gray" }}
+                                        style={{ minWidth: column.minWidth, background: "gray", fontSize: "20px", fontWeight:"bold" }}
                                     >
                                         {column.label}
                                     </TableCell>
