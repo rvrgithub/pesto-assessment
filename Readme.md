@@ -11,9 +11,6 @@ This is a To-Do App developed as part of the Pesto assessment. It allows users t
 
 ## Frontend Installation
 
-### Prerequisites
-- Node.js installed on your machine.
-
 ### Steps
 1. Clone this repository.
 2. Navigate to the `frontend` directory.
