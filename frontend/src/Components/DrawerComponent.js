@@ -170,22 +170,22 @@ export const DrawerComponent = () => {
         <Divider />
 
         {/* List of items */}
-        <List>
-          {['Sign In', 'Log Out'].map((text, index) => (
-            <ListItem key={text} disablePadding>
+        <List onClick={() => {
+                    localStorage.clear();
+                    navigate("/sign-in");
+                  }}>
+          {/* {['Sign In', 'Log Out'].map((text, index) => ( */}
+            <ListItem  disablePadding >
               <ListItemButton>
                 <ListItemIcon>
                   {/* Conditional rendering of icons */}
-                  {index % 2 === 0 ? <Link to="/sign-in"><LoginIcon /></Link> : <LogoutIcon onClick={() => {
-                    localStorage.clear();
-                    navigate("/sign-in");
-                  }} />}
+                  <LogoutIcon  />
                 </ListItemIcon>
                 {/* Text for each item */}
-                <ListItemText primary={text} />
+                <ListItemText primary={"Log Out"} />
               </ListItemButton>
             </ListItem>
-          ))}
+          {/* ))} */}
         </List>
       </Drawer>
     </Box>

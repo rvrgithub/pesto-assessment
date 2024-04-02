@@ -11,14 +11,14 @@ exports.signup = async (req, res) => {
         if (Object.keys(req.body).length === 0) {
             return res.status(401).send({
                 status: false,
-                massage: "All Credientials Are Required 1.. !!",
+                message: "All Credientials Are Required 1.. !!",
             });
         }
         // Check if all credentials are provided
         if (!firstName || !lastName || !email || !password) {
             return res.status(401).send({
                 status: false,
-                massage: "All credentials are required.",
+                message: "All credentials are required.",
             });
         }
         // Validate first name and last name
@@ -52,7 +52,7 @@ exports.signup = async (req, res) => {
         if (checkPassword) {
             return res.status(401).json({
                 status: false,
-                massage: "User already registered."
+                message: "User already registered."
             });
         } else {
             // Hash password
@@ -68,14 +68,14 @@ exports.signup = async (req, res) => {
             let response = await data.save();
             return res.status(201).json({
                 status: true,
-                massage: "register succesfully!!",
+                message: "register succesfully!!",
                 response,
             });
         }
     } catch (error) {
         return res.status(401).json({
             status: false,
-            massage: "Something Wrong !!",
+            message: "Something Wrong !!",
             error,
         });
     }
@@ -89,7 +89,7 @@ exports.signin = async (req, res) => {
         if (Object.keys(req.body).length === 0) {
             return res.status(401).send({
                 status: false,
-                massage: "Fill All Credientials...",
+                message: "Fill All Credientials...",
             });
         } // all are empty..
         // Check if credentials are provided
@@ -114,7 +114,7 @@ exports.signin = async (req, res) => {
             //   console.log("all are required");
             return res.status(401).send({
                 status: false,
-                massage: "password is not valid !!",
+                message: "password is not valid !!",
             });
         }
 
@@ -126,7 +126,7 @@ exports.signin = async (req, res) => {
         if (!findUser) {
             return res.status(401).json({
                 status: false,
-                massage: "User Not Found Please Register !!",
+                message: "User Not Found Please Register !!",
             });
         } else {
 
@@ -136,7 +136,7 @@ exports.signin = async (req, res) => {
             if (!matchPasswrod) {
                 return res.status(401).json({
                     status: false,
-                    massage: "Password and Email Not Match!!",
+                    message: "Password and Email Not Match!!",
                 });
             } else {
                 // Generate JWT token
@@ -144,7 +144,7 @@ exports.signin = async (req, res) => {
                 console.log("token", token);
                 return res.status(201).json({
                     status: true,
-                    massage: "Login Successfully !!",
+                    message: "Login Successfully !!",
                     token,
                 });
             }

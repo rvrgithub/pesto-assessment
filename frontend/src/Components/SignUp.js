@@ -50,21 +50,18 @@ export const SignUp = () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok', response.massage);
-        }
-        return response.json();
-      })
+      .then(res => res.json())
       .then(data => {
+        console.log(data)
         if (data.status) {
+          navigate("/sign-in")
+
           enqueueSnackbar("Sign Up Successfully !!", { variant: "success" })
         } else {
-          enqueueSnackbar(data.massage, { variant: "error" })
+          enqueueSnackbar(data?.message ?? "Something went wrong !!", { variant: "error" })
         }
-        navigate("/sign-in")
       })
-      .catch(error => enqueueSnackbar(error.message, { variant: "error" }));
+      .catch(error => enqueueSnackbar(error?.message ?? "Internal server error !!", { variant: "error" }));
   }
 
   return (
@@ -93,7 +90,6 @@ export const SignUp = () => {
                 <TextField
                   autoComplete="given-name"
                   name="firstName"
-                  required
                   fullWidth
                   {...register('firstName')}
                   id="firstName"

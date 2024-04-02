@@ -51,24 +51,23 @@ export const SignIn = () => {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data),
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok', response.massage);
-                }
-                return response.json();
-            })
-            .then((data) => {
-                if (data.status == true) {
-                    enqueueSnackbar("Sign In Successfully !!", { variant: "success" })
-                    localStorage.setItem("Token", data.token);
-                    navigate("/");
+        }).then(res => res.json())
+            .then(data => {
+                console.log(data)
+                if (data.status) {
+                    localStorage.setItem("Token", data.token)
+                    enqueueSnackbar("Login Successfully !!", { variant: "success" })
+                    navigate('/')
                 } else {
-                    enqueueSnackbar(data.massage, { variant: "error" })
-                    navigate("/sign-up")
+                    enqueueSnackbar(data?.message ?? "Some thing went wrong !!", { variant: "error" })
+
                 }
             })
-            .catch((error) => enqueueSnackbar(error.message, { variant: "error" }));
+            .catch(err => {
+                enqueueSnackbar(err?.message ?? "Internal server error !!", { variant: "error" })
+
+            })
+
     };
 
     return (
@@ -102,6 +101,7 @@ export const SignIn = () => {
                             error={!!errors.email} // Checking for errors
                             helperText={errors.email ? errors.email.message : ''}
                         />
+                        <Box sx={{ height: "5vh" }} />
                         <TextField
                             required
                             fullWidth
@@ -113,10 +113,6 @@ export const SignIn = () => {
                             {...register('password')}
                             error={!!errors.password} // Checking for errors
                             helperText={errors.password ? errors.password.message : ''}
-                        />
-                        <FormControlLabel
-                            control={<Checkbox value="remember" color="primary" />}
-                            label="Remember me"
                         />
                         <Button
                             type="submit"

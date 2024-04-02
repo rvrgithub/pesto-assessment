@@ -99,7 +99,7 @@ export const TableComponent = () => {
         })
             .then((res) => res.json())
             .then((data) => {
-                console.log("data", data)
+                // console.log("data", data)
                 setData(data)
             })
             .catch((error) => console.log("error", error));
@@ -178,7 +178,7 @@ export const TableComponent = () => {
                 <Grid container alignItems="center">
                     <Grid item xs={12} sm={4}>
                         <Button variant="contained" color="primary" onClick={createTodo} className={classes.button}>
-                            + create
+                            create +
                         </Button>
                     </Grid>
                     <Grid item xs={12} sm={8} container justifyContent="flex-end">
@@ -225,7 +225,7 @@ export const TableComponent = () => {
                                     <TableCell
                                         key={column.id}
                                         align={column.align}
-                                        style={{ minWidth: column.minWidth, background: "gray", fontSize: "20px", fontWeight:"bold" }}
+                                        style={{ minWidth: column.minWidth, background: "gray", fontSize: "20px", fontWeight: "bold" }}
                                     >
                                         {column.label}
                                     </TableCell>
@@ -243,6 +243,7 @@ export const TableComponent = () => {
                                                     align="left"
                                                     sx={{
                                                         padding: "1px",
+                                                        textTransform: "capitalize",
                                                         textAlign:
                                                             column.id === "description" ||
                                                                 column.id === "title" ||

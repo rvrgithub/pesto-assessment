@@ -115,7 +115,7 @@ exports.deleteTodo = async (req, res) => {
         // Error handling
         return res.status(401).json({
             stauts: false,
-            massage: "Something Wrong !!",
+            message: "Something Wrong !!",
             error,
         });
     }
