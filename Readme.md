@@ -47,7 +47,7 @@ This is a To-Do App developed as part of the Pesto assessment. It allows users t
     ```
 4. Start the backend server by running:
     ```
-    npm run start
+    npm run dev
     ```
 
 ### Packages Used
