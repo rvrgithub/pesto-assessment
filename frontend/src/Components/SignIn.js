@@ -5,7 +5,6 @@ import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
-// import Link from '@mui/material/Link';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
@@ -17,7 +16,9 @@ import * as yup from 'yup';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { enqueueSnackbar } from 'notistack';
+import { api } from '../App';
 
+// Function to display copyright information
 function Copyright(props) {
     return (
         <Typography variant="body2" color="text.secondary" align="center" {...props}>
@@ -31,18 +32,22 @@ function Copyright(props) {
     );
 }
 
-// TODO remove, this demo shouldn't need to reset the theme.
-
+// Create a default theme
 const defaultTheme = createTheme();
 
+// Main SignIn component
 export const SignIn = () => {
-    const navigate = useNavigate()
-    const { register, handleSubmit, reset, formState: { errors } } = useForm({
+    // Using react-router-dom hook for navigation
+    const navigate = useNavigate();
+
+    // Using react-hook-form for form handling
+    const { register, handleSubmit, formState: { errors } } = useForm({
         resolver: yupResolver(validationSchema), // Using Yup for validation
     });
 
+    // Function to handle sign in submission
     const handleSignin = (data) => {
-        fetch(`http://localhost:4000/signin`, {
+        fetch(`${api}/signin`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data),
@@ -130,12 +135,12 @@ export const SignIn = () => {
                         </Grid>
                     </Box>
                 </Box>
+                {/* Display copyright */}
                 <Copyright sx={{ mt: 8, mb: 4 }} />
             </Container>
         </ThemeProvider>
     );
 }
-
 
 // Define your validation schema using Yup
 const validationSchema = yup.object().shape({

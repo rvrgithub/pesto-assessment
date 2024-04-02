@@ -28,7 +28,7 @@ import FormDialog from "./FormDialog";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import { enqueueSnackbar } from "notistack";
 import { DrawerComponent } from "./DrawerComponent";
-import { token } from "../App";
+import { api,token } from "../App";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -37,67 +37,51 @@ const useStyles = makeStyles((theme) => ({
             textAlign: "center", // Center align on small screens
         },
     },
-
     button: {
         marginLeft: theme.spacing(1), // Add margin between select and button
     },
-
     textField: {
         marginRight: theme.spacing(1), // Adjust as needed
     },
     resetButton: {
-        animation: '$spin 2s linear infinite',
+        animation: "$spin 2s linear infinite",
     },
-    '@keyframes spin': {
-        '0%': {
-            transform: 'rotate(0deg)',
+    "@keyframes spin": {
+        "0%": {
+            transform: "rotate(0deg)",
         },
-        '100%': {
-            transform: 'rotate(360deg)',
+        "100%": {
+            transform: "rotate(360deg)",
         },
     },
 }));
+
 const columns = [
     { id: "title", label: "Title", minWidth: 170, align: "left" },
-    {
-        id: "description",
-        label: "Description",
-        minWidth: 170,
-        align: "left",
-    },
-    {
-        id: "status",
-        label: "Status",
-        minWidth: 170,
-        align: "left",
-        format: (value) => value.toLocaleString("en-US"),
-    },
-    {
-        id: "edit",
-        label: "Edit",
-        minWidth: 170,
-        align: "center",
-        format: (value) => value.toLocaleString("en-US"),
-    },
+    { id: "description", label: "Description", minWidth: 170, align: "left" },
+    { id: "status", label: "Status", minWidth: 170, align: "left", format: (value) => value.toLocaleString("en-US") },
+    { id: "edit", label: "Edit", minWidth: 170, align: "center", format: (value) => value.toLocaleString("en-US") },
 ];
 
 export const TableComponent = () => {
-    // .................. States .........................
+    // States
     const [page, setPage] = useState(0);
     const [search, setSearch] = useState("");
     const [rowsPerPage, setRowsPerPage] = useState(10);
-    const [editId, setEditId] = useState();
+    const [rowData, setRowData] = useState();
     const [loader, setLoader] = useState(true);
     const [data, setData] = useState([]);
     const [edit, setEdit] = useState(false);
-    const [editValue, setEditValue] = useState([]);
     const [open, setOpen] = useState(false);
     const [anchorEl, setAnchorEl] = useState(null);
-    const [reset, setReset] = useState(false)
+    const [reset, setReset] = useState(false);
 
-    // ................. Variables .......................
+    // let token = localStorage.getItem("Token");
+
+    // Variables
     const classes = useStyles();
-    // ..................funciton ...................
+
+    // Functions
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
     };
@@ -107,40 +91,33 @@ export const TableComponent = () => {
         setPage(0);
     };
 
-
     const getData = () => {
-        console.log("");
-        fetch(
-            `http://localhost:4000/get-todo?page=${page + 1
-            }&limit=${rowsPerPage}&search=${search}`,{
-                headers:{
+        fetch(`${api}/get-todo?page=${page + 1}&limit=${rowsPerPage}&search=${search}`, {
+            headers: {
                 Authorization: `Bearer ${token}`,
-        
-                }}
-        )
+            },
+        })
             .then((res) => res.json())
-            .then((data) => setData(data))
+            .then((data) => {
+                console.log("data",data)
+                setData(data)})
             .catch((error) => console.log("error", error));
     };
 
     const deleteTodo = (id) => {
-        console.log("id", id);
-
-        fetch(`http://localhost:4000/delete-todo/${id}`, { method: "DELETE",
-            headers:{
-            Authorization: `Bearer ${token}`,
-    
-            } })
+        fetch(`${api}/delete-todo/${id}`, {
+            method: "DELETE",
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        })
             .then((res) => res.json())
             .then(() => {
-                enqueueSnackbar("Data Delete Successfully !!", { variant: "success" })
-                getData()
+                enqueueSnackbar("Data Delete Successfully !!", { variant: "success" });
+                getData();
             })
-            .catch((error) => enqueueSnackbar(error.message, { variant: "error" })
-            );
+            .catch((error) => enqueueSnackbar(error.message, { variant: "error" }));
     };
-
-
 
     const createTodo = () => {
         setOpen(true);
@@ -159,40 +136,12 @@ export const TableComponent = () => {
         }
     };
 
-
     const handleClick = (event) => {
         setAnchorEl(event.currentTarget);
         console.log("target value", event.currentTarget);
     };
 
-    const handleClose = () => {
-        setAnchorEl(null);
-    };
-
-
-    // const handleEditeValue = (value) => {
-    //     // Add your edit logic here
-    //     console.log("targetValue ", value);
-    //     fetch(`http://localhost:4000/update-todo/${editId}`, {
-    //         method: "PUT",
-    //         headers: { "Content-Type": "application/json" },
-    //         body: JSON.stringify({
-    //             status: value,
-    //         }),
-    //     })
-    //         .then((res) => res.json())
-    //         .then((data) => {
-    //             if (data.status) {
-    //                 enqueueSnackbar("Data Update Successfully !!", { variant: "success" })
-    //                 getData();
-    //             }
-    //         })
-    //         .catch((err) => enqueueSnackbar(err.message, { variant: "error" }));
-    //     handleClose();
-    // };
-
     const handleColor = (value) => {
-        // console.log("value", value)
         if (value === "pending") {
             return "red";
         } else if (value === "inprogress") {
@@ -204,15 +153,14 @@ export const TableComponent = () => {
 
     const resetButton = () => {
         setReset(true);
-        setSearch("")
-    }
+        setSearch("");
+    };
 
     useEffect(() => {
         getData();
         SearchStatus();
         getData();
         SearchStatus();
-
         const interval = setInterval(() => {
             setReset(false);
             setLoader(false);
@@ -220,27 +168,27 @@ export const TableComponent = () => {
 
         return () => clearInterval(interval); // Cleanup function to clear interval on component unmount
     }, [page, rowsPerPage, search, open]);
+
     return (
         <Container sx={{ width: "100%", overflow: "hidden" }}>
-            <FormDialog setOpen={setOpen} open={open} editId={editId} edit={edit} />
+            <FormDialog setOpen={setOpen} open={open} setEdit={setEdit} setRowData={setRowData} rowData={rowData} edit={edit} />
             <Box className={classes.root}>
                 <DrawerComponent />
                 <Grid container alignItems="center">
                     <Grid item xs={12} sm={4}>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={createTodo}
-                            className={classes.button}
-                        >
+                        <Button variant="contained" color="primary" onClick={createTodo} className={classes.button}>
                             + create
                         </Button>
                     </Grid>
                     <Grid item xs={12} sm={8} container justifyContent="flex-end">
                         <FormControl variant="standard" sx={{ m: 1, minWidth: 120 }}>
-                            {!search ?
-                                <InputLabel id="demo-simple-select-standard-label" sx={{ position: "relative" }}>Status</InputLabel>
-                                : ""}
+                            {!search ? (
+                                <InputLabel id="demo-simple-select-standard-label" sx={{ position: "relative" }}>
+                                    Status
+                                </InputLabel>
+                            ) : (
+                                ""
+                            )}
                             <Select
                                 labelId="demo-simple-select-standard-label"
                                 id="demo-simple-select-standard"
@@ -252,7 +200,7 @@ export const TableComponent = () => {
                                 </MenuItem>
                                 <MenuItem value="inprogress">Inprogress</MenuItem>
                                 <MenuItem value="pending">Pending</MenuItem>
-                                <MenuItem value="success">Done</MenuItem>
+                                <MenuItem value="done">Done</MenuItem>
                             </Select>
                         </FormControl>
                         <IconButton onClick={resetButton} className={reset ? classes.resetButton : ""}>
@@ -261,9 +209,7 @@ export const TableComponent = () => {
                     </Grid>
                 </Grid>
             </Box>
-            <Paper
-                sx={{ width: "100%", overflow: "hidden", border: "1px solid #e5e5e5" }}
-            >
+            <Paper sx={{ width: "100%", overflow: "hidden", border: "1px solid #e5e5e5" }}>
                 <TableContainer sx={{ maxHeight: 440 }}>
                     <Table
                         stickyHeader
@@ -287,8 +233,8 @@ export const TableComponent = () => {
                         </TableHead>
                         {!loader ? (
                             <TableBody>
-                                {data
-                                    ? data?.message?.map((row, rowIndex) => (
+                                {data ? (
+                                    data?.message?.map((row, rowIndex) => (
                                         <TableRow key={row.table} hover>
                                             {columns.map((column, columnIndex) => (
                                                 <TableCell
@@ -326,10 +272,9 @@ export const TableComponent = () => {
                                                                 aria-haspopup="true"
                                                                 onClick={(e) => {
                                                                     handleClick(e);
-                                                                    setEditId(row._id);
+                                                                    setRowData(row);
                                                                     setOpen(true);
-                                                                    setEdit(true)
-
+                                                                    setEdit(true);
                                                                 }}
                                                             >
                                                                 <EditIcon />
@@ -343,38 +288,6 @@ export const TableComponent = () => {
                                                             >
                                                                 <DeleteIcon />
                                                             </IconButton>
-                                                            {/* <Menu
-                                                                id="edit-menu"
-                                                                anchorEl={anchorEl}
-                                                                keepMounted
-                                                                open={Boolean(anchorEl)}
-                                                                onClose={handleClose}
-                                                            >
-                                                                <MenuItem
-                                                                    value="inprogress"
-                                                                    onClick={(e) =>
-                                                                        handleMenuItemClick("inprogress")
-                                                                    }
-                                                                >
-                                                                    In progress
-                                                                </MenuItem>
-                                                                <MenuItem
-                                                                    value="all"
-                                                                    onClick={() =>
-                                                                        handleMenuItemClick("pending")
-                                                                    }
-                                                                >
-                                                                    Pending
-                                                                </MenuItem>
-                                                                <MenuItem
-                                                                    value="all"
-                                                                    onClick={() => handleMenuItemClick("done")}
-                                                                >
-                                                                    Done
-                                                                </MenuItem>
-                                                            </Menu> */}
-                                                            {/* 
-                                                            {!edit ? <FormDialog setOpen={setOpen} open={open} /> : ""} */}
                                                         </div>
                                                     ) : (
                                                         row[column.id]
@@ -383,12 +296,13 @@ export const TableComponent = () => {
                                             ))}
                                         </TableRow>
                                     ))
-                                    : <Typography variant="h4" gutterBottom>
+                                ) : (
+                                    <Typography variant="h4" gutterBottom>
                                         No Data found
-                                    </Typography>}
+                                    </Typography>
+                                )}
                             </TableBody>
                         ) : (
-
                             <TableHead>
                                 <TableCell colSpan={4}>
                                     <Box
@@ -397,11 +311,7 @@ export const TableComponent = () => {
                                         justifyContent="center"
                                         height="50px" // Adjust as needed for your layout
                                     >
-                                        <CircularProgress
-                                            display="flex"
-                                            alignItems="center"
-                                            justifyContent="center"
-                                        />
+                                        <CircularProgress display="flex" alignItems="center" justifyContent="center" />
                                     </Box>
                                 </TableCell>
                             </TableHead>
@@ -422,5 +332,3 @@ export const TableComponent = () => {
         </Container>
     );
 };
-
-

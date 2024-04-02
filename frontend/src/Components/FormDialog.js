@@ -1,81 +1,89 @@
-import * as React from 'react';
-import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
-import { useForm } from 'react-hook-form';
-import * as yup from 'yup';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { enqueueSnackbar } from 'notistack';
-import { FormControl, InputLabel, MenuItem, Select } from '@mui/material';
-import { token } from '../App';
-export default function FormDialog({ setOpen, open, edit, editId }) {
-  const { register, handleSubmit, reset, formState: { errors } } = useForm({
-    resolver: yupResolver(validationSchema), // Using Yup for validation
+import React, { useEffect, useMemo } from "react";
+import { Button, TextField, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select } from "@mui/material";
+import { useForm } from "react-hook-form";
+import * as yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { enqueueSnackbar } from "notistack";
+import { api, token } from "../App";
+
+export default function FormDialog({ setOpen, open, edit = false, rowData, setEdit, setRowData }) {
+  // Define validation schema using yup
+  const validationSchema = yup.object().shape({
+    title: yup.string().required("Title is required"),
+    description: yup.string().required("Description is required"),
+    status: yup.string().required("Status is required")
   });
-  const [editData, setEditData] = React.useState([]);
+
+  // Set default form values based on whether it's an edit or add operation
+  const defaultValues = useMemo(() => ({
+    title: edit ? (rowData.title || "") : "",
+    description: edit ? (rowData.description || "") : "",
+    status: edit ? (rowData.status || "") : "",
+  }), [edit, rowData]);
+
+  // Form management using react-hook-form
+  const { register, handleSubmit, reset, formState: { errors }, setValue } = useForm({
+    resolver: yupResolver(validationSchema),
+    defaultValues,
+  });
+
+  // Set form values for edit mode
+  if (edit) {
+    setValue("title", rowData.title);
+    setValue("description", rowData.description);
+    setValue("status", rowData.status);
+  }
+
+  // Close dialog
   const handleClose = () => {
     setOpen(false);
   };
 
-  const hanldeDataSubmit = (data) => {
-    console.log("data", data)
-    fetch(`http://localhost:4000/post-todo`, {
-      method: "POST",
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+  // Handle form submission
+  const handleDataSubmit = (data) => {
+    const url = edit ? `${api}/update-todo/${rowData._id}` : `${api}/post-todo`;
+    const method = edit ? "PUT" : "POST";
+
+    fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
     })
-      .then(response => {
+      .then((response) => {
         if (!response.ok) {
-          throw new Error('Network response was not ok');
+          throw new Error("Network response was not ok");
         }
         return response.json();
       })
-      .then(data => {
-        enqueueSnackbar("Data added Successfully !!", { variant: "success" })
-        console.log('Data sent successfully:', data);
-        setEditData(data);
+      .then((responseData) => {
+        const message = edit ? "Data updated successfully!" : "Data added successfully!";
+        enqueueSnackbar(message, { variant: "success" });
+        console.log("Data sent successfully:", responseData);
         reset();
         handleClose();
-        // setEditId(data)
+        setRowData({
+          title: "",
+          description: "",
+          status: ""
+        })
+        setEdit(false)
+
       })
-      .catch(error => {
-        console.error('Error sending data:', error);
+      .catch((error) => {
+        console.error("Error sending data:", error);
+        enqueueSnackbar(error.message, { variant: "error" });
       });
   };
 
-
-
-  const handleEditeValue = (value) => {
-    // Add your edit logic here
-    console.log("targetValue ", value);
-    fetch(`http://localhost:4000/update-todo/${editId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" ,
-        headers:{
-        Authorization: `Bearer ${token}`,
-        }
-    },
-      body: JSON.stringify({
-        status: value,
-      }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        // if (data.status) {
-        //   enqueueSnackbar("Data Update Successfully !!", { variant: "success" })
-        //   // getData();
-        // }
-      })
-      .catch((err) =>
-      //  enqueueSnackbar(err.message, { variant: "error" })
-      console.log("error", err)
-       );
-    handleClose();
-  };
-  console.log("editData", editData, register);
+  // Reset form when edit mode changes
+  useEffect(() => {
+    if (!edit) {
+      reset()
+    }
+  }, [edit])
 
   return (
     <React.Fragment>
@@ -83,15 +91,16 @@ export default function FormDialog({ setOpen, open, edit, editId }) {
         open={open}
         onClose={handleClose}
         PaperProps={{
-          component: 'form',
+          component: "form",
         }}
-        onSubmit={handleSubmit(hanldeDataSubmit)}
+        onSubmit={handleSubmit(handleDataSubmit)}
       >
         <DialogTitle>Create Your Todo</DialogTitle>
         <DialogContent>
+          {/* Input fields */}
           <TextField
             autoFocus
-            {...register('title')}
+            {...register("title")}
             margin="dense"
             id="title"
             name="title"
@@ -99,8 +108,8 @@ export default function FormDialog({ setOpen, open, edit, editId }) {
             type="text"
             fullWidth
             variant="standard"
-            error={!!errors.title} // Checking for errors
-            helperText={errors.title ? errors.title.message : ''}
+            error={!!errors.title}
+            helperText={errors.title ? errors.title.message : ""}
           />
           <TextField
             autoFocus
@@ -111,44 +120,35 @@ export default function FormDialog({ setOpen, open, edit, editId }) {
             type="text"
             fullWidth
             variant="standard"
-            {...register('description')}
-            error={!!errors.description} // Checking for errors
-            helperText={errors.description ? errors.description.message : ''}
+            {...register("description")}
+            error={!!errors.description}
+            helperText={errors.description ? errors.description.message : ""}
           />
+          {/* Select field for status */}
           <FormControl variant="standard" sx={{ m: 1, minWidth: "95%" }}>
-
-            <InputLabel id="demo-simple-select-standard-label" sx={{ position: "relative" }}>Status</InputLabel>
-
+            <InputLabel id="demo-simple-select-standard-label">Status</InputLabel>
             <Select
               labelId="demo-simple-select-standard-label"
               id="demo-simple-select-standard"
               name="status"
-              {...register('status')}
+              {...register("status")}
             >
-              <MenuItem disabled value="">
-                Status
-              </MenuItem>
-              <MenuItem value="inprogress">Inprogress</MenuItem>
+              <MenuItem disabled value="">Status</MenuItem>
+              <MenuItem value="inprogress">In Progress</MenuItem>
               <MenuItem value="pending">Pending</MenuItem>
               <MenuItem value="done">Done</MenuItem>
             </Select>
           </FormControl>
         </DialogContent>
         <DialogActions>
+          {/* Cancel button */}
           <Button onClick={handleClose}>Cancel</Button>
-          {!edit ? <Button type="submit" color="primary" variant="contained">ADD</Button> :
-            <Button onClick={() => handleEditeValue(editData)} color="primary" variant="contained">Update</Button>
-          }
-
-
+          {/* Submit button */}
+          <Button type="submit" color="primary" variant="contained">
+            {edit ? "Update" : "Add"}
+          </Button>
         </DialogActions>
       </Dialog>
-    </React.Fragment >
+    </React.Fragment>
   );
 }
-
-// Define your validation schema using Yup
-const validationSchema = yup.object().shape({
-  title: yup.string().required('Title is required'),
-  description: yup.string().required('Description is required'),
-});

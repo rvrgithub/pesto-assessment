@@ -3,20 +3,20 @@ import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
-import * as yup from 'yup';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { Link, useNavigate } from 'react-router-dom';
+import * as yup from 'yup';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { enqueueSnackbar } from 'notistack';
+import { api } from '../App';
 
+// Function to display copyright information
 function Copyright(props) {
   return (
     <Typography variant="body2" color="text.secondary" align="center" {...props}>
@@ -30,19 +30,22 @@ function Copyright(props) {
   );
 }
 
-
+// Create a default theme
 const defaultTheme = createTheme();
 
+// Main SignUp component
 export const SignUp = () => {
-  const navigate = useNavigate()
-  const { register, handleSubmit, reset, formState: { errors } } = useForm({
+  // Using react-router-dom hook for navigation
+  const navigate = useNavigate();
+
+  // Using react-hook-form for form handling
+  const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: yupResolver(validationSchema), // Using Yup for validation
   });
 
-
+  // Function to handle sign up submission
   const handleSignup = (data) => {
-    console.log("data", data)
-    fetch(`http://localhost:4000/signup`, {
+    fetch(`${api}/signup`, {
       method: "POST",
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
@@ -64,7 +67,6 @@ export const SignUp = () => {
       .catch(error => enqueueSnackbar(error.message, { variant: "error" }));
   }
 
-  // console.log("register", register)
   return (
     <ThemeProvider theme={defaultTheme}>
       <Container component="main" maxWidth="xs">
@@ -85,14 +87,13 @@ export const SignUp = () => {
           </Typography>
           <Box component="form"
             onSubmit={handleSubmit(handleSignup)}
-            // onSubmit={handleSignup}
             sx={{ mt: 3 }}>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
                 <TextField
                   autoComplete="given-name"
                   name="firstName"
-                    required
+                  required
                   fullWidth
                   {...register('firstName')}
                   id="firstName"
@@ -130,7 +131,6 @@ export const SignUp = () => {
               </Grid>
               <Grid item xs={12}>
                 <TextField
-                  
                   fullWidth
                   name="password"
                   label="Enter 8 Digit Password"
@@ -142,12 +142,6 @@ export const SignUp = () => {
                   helperText={errors.password ? errors.password.message : ''}
                 />
               </Grid>
-              {/* <Grid item xs={12}>
-                <FormControlLabel
-                  control={<Checkbox value="allowExtraEmails" color="primary" />}
-                  label="I want to receive inspiration, marketing promotions and updates via email."
-                />
-              </Grid> */}
             </Grid>
             <Button
               type="submit"
@@ -166,13 +160,12 @@ export const SignUp = () => {
             </Grid>
           </Box>
         </Box>
+        {/* Display copyright */}
         <Copyright sx={{ mt: 5 }} />
       </Container>
     </ThemeProvider >
   );
 }
-
-
 
 // Define your validation schema using Yup
 const validationSchema = yup.object().shape({
@@ -181,4 +174,3 @@ const validationSchema = yup.object().shape({
   password: yup.string().required('Password is required').length(8, 'Password must be exactly 8 characters long'),
   email: yup.string().required('Email is required').email().required('Invalid email address'),
 });
-

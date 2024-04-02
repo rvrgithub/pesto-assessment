@@ -2,9 +2,9 @@ const User = require("../model/userModel");
 const { isValidName, isValidEmail, isValidPwd } = require("../utils/validation");
 const bcrypt = require("bcrypt");
 var jwt = require("jsonwebtoken");
-
-// .......................... create user..................................
-
+require('dotenv').config();
+const JWT_SECRET = process.env.JWT_SECRET;
+// Function to handle user signup
 exports.signup = async (req, res) => {
     const { firstName, lastName, email, password } = req.body;
     try {
@@ -14,64 +14,58 @@ exports.signup = async (req, res) => {
                 massage: "All Credientials Are Required 1.. !!",
             });
         }
-        // .......................All Credientials Are Required....................
+        // Check if all credentials are provided
         if (!firstName || !lastName || !email || !password) {
             return res.status(401).send({
                 status: false,
-                massage: "All Credientials Are Required.. !!",
+                massage: "All credentials are required.",
             });
         }
-        //.......................error inside first name.......................
-        if (!isValidName(firstName)) {
+        // Validate first name and last name
+
+        if (!isValidName(firstName) || !isValidName(lastName)) {
             return res.status(401).send({
                 status: false,
-                massage: "Only String valid !!",
-            });
-        }
-        //.......................error inside last name.......................
-        if (!isValidName(lastName)) {
-            return res.status(401).send({
-                status: false,
-                massage: "Only String valid !!",
+                message: "First and last name must contain only letters."
             });
         }
 
-        //  .......................error inside email .......................
+
+        // Validate email
         if (!isValidEmail(email)) {
             console.log("all are required");
             return res.status(401).send({
                 status: false,
-                massage: "email is not valid !!",
+                message: "Invalid email address."
             });
         }
-        // ....................... error inside password .......................
+        // Validate password
         if (!isValidPwd(password)) {
-            console.log("all are required");
             return res.status(401).send({
                 status: false,
-                massage: "password is not valid !!",
+                message: "Password must be at least 8 characters long."
             });
         }
 
-        // ....................find user  ..................................
+        // Check if user already exists
         const checkPassword = await User.findOne({ email });
-        //  .......................chack user if alreay register ........
         if (checkPassword) {
             return res.status(401).json({
                 status: false,
-                massage: "already register!!",
+                massage: "User already registered."
             });
         } else {
-            // .......................create password strong ......
+            // Hash password
             const hasmapPassword = await bcrypt.hash(password, 10);
+            // Create new user
             const data = new User({
                 firstName,
                 lastName,
                 password: hasmapPassword,
                 email,
             });
-
-           let response= await data.save();
+            // Save user to database
+            let response = await data.save();
             return res.status(201).json({
                 status: true,
                 massage: "register succesfully!!",
@@ -87,8 +81,8 @@ exports.signup = async (req, res) => {
     }
 }
 
-// .......................... get all todos..................................
 
+// Function to handle user signin
 exports.signin = async (req, res) => {
     const { email, password } = req.body;
     try {
@@ -98,23 +92,24 @@ exports.signin = async (req, res) => {
                 massage: "Fill All Credientials...",
             });
         } // all are empty..
+        // Check if credentials are provided
         if (!email || !password) {
             return res.status(401).json({
                 status: false,
-                massage: "Fill All Credientials",
+                message: "Email and password are required."
             });
         }// if any one is empty..
 
-        //  .......................error inside email .......................
+        // Validate email
         if (!isValidEmail(email)) {
             //   console.log("email is not valid");
             return res.status(401).send({
                 status: false,
-                massage: "email is not valid !!",
+                message: "Invalid email address."
             });
         }
 
-        // ....................... error inside password .......................
+        // validate password
         if (!isValidPwd(password)) {
             //   console.log("all are required");
             return res.status(401).send({
@@ -123,7 +118,7 @@ exports.signin = async (req, res) => {
             });
         }
 
-        //.................find user ....................
+        // Find user by email
         const findUser = await User.findOne({ email });
         console.log("user", findUser);
 
@@ -134,18 +129,18 @@ exports.signin = async (req, res) => {
                 massage: "User Not Found Please Register !!",
             });
         } else {
-            //  ............... check passowrd  ............
+
             const matchPasswrod = await bcrypt.compare(password, findUser.password);
             //   console.log("matchPasswrod", matchPasswrod);
-            // ..........................Match Password......................
+            // Compare passwords
             if (!matchPasswrod) {
                 return res.status(401).json({
                     status: false,
                     massage: "Password and Email Not Match!!",
                 });
             } else {
-                // ...........................create Token..................................
-                const token = jwt.sign({ id: findUser._id }, "radhika");
+                // Generate JWT token
+                const token = jwt.sign({ id: findUser._id }, JWT_SECRET);
                 console.log("token", token);
                 return res.status(201).json({
                     status: true,
@@ -157,11 +152,33 @@ exports.signin = async (req, res) => {
     } catch (error) {
         return res.status(401).json({
             status: false,
-            massage: "Something Wrong !!",
-            error,
+            message: "Internal server error.",
+            error: error.message
         });
     }
 };
 
 
+
+
+
+
+// Function to get user profile
+exports.getProfile = async (req, res) => {
+    try {
+        // Get user ID from request object
+        const userId = req.user;
+        return res.status(200).json({
+            status: true,
+            message: "User profile retrieved successfully.",
+            userId
+        });
+    } catch (error) {
+        return res.status(500).json({
+            status: false,
+            message: "Internal server error.",
+            error: error.message
+        });
+    }
+};
 

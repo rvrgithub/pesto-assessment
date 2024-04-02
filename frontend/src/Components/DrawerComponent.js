@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { styled, useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
@@ -16,13 +16,15 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import InboxIcon from '@mui/icons-material/MoveToInbox';
-import MailIcon from '@mui/icons-material/Mail';
 import LogoutIcon from '@mui/icons-material/Logout';
 import LoginIcon from '@mui/icons-material/Login';
-import { Link } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { Grid } from '@mui/material';
+import { api, token } from '../App';
+
 const drawerWidth = 240;
+
+// Styling AppBar to handle the open state for drawer
 const AppBar = styled(MuiAppBar, {
   shouldForwardProp: (prop) => prop !== 'open',
 })(({ theme, open }) => ({
@@ -40,6 +42,7 @@ const AppBar = styled(MuiAppBar, {
   }),
 }));
 
+// Styling for DrawerHeader
 const DrawerHeader = styled('div')(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
@@ -52,23 +55,58 @@ const DrawerHeader = styled('div')(({ theme }) => ({
 export const DrawerComponent = () => {
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
+  const [profileData, setProfileData] = React.useState([]);
   let navigate = useNavigate();
+
+  // Function to open drawer
   const handleDrawerOpen = () => {
     setOpen(true);
   };
 
+  // Function to close drawer
   const handleDrawerClose = () => {
     setOpen(false);
   };
 
+  // Fetching profile data from the server
+  const getProfile = () => {
+    fetch(`${api}/profile`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      })
+      .then((responseData) => {
+        console.log("Get Profile Data Successfully:", responseData.userId);
+        setProfileData(responseData.userId);
+      })
+      .catch((error) => {
+        console.error("Error sending data:", error);
+      });
+  };
+
+  // Fetch profile data when component mounts
+  React.useEffect(() => {
+    getProfile();
+  }, []);
+
   return (
-    <Box sx={{ display: 'flex', }}>
+    <Box sx={{ display: 'flex' }}>
       <CssBaseline />
+      {/* Main AppBar */}
       <AppBar open={open} style={{ background: "transparent", border: "transparent" }}>
         <Toolbar>
           <Typography variant="h6" color={'gray'} noWrap sx={{ flexGrow: 1 }} component="div">
             Todo List
           </Typography>
+          {/* Menu Icon for opening the drawer */}
           <IconButton
             color="gray"
             aria-label="open drawer"
@@ -80,8 +118,10 @@ export const DrawerComponent = () => {
           </IconButton>
         </Toolbar>
       </AppBar>
+      {/* Placeholder for the AppBar */}
       <DrawerHeader />
 
+      {/* Main Drawer Component */}
       <Drawer
         sx={{
           width: drawerWidth,
@@ -94,24 +134,54 @@ export const DrawerComponent = () => {
         anchor="right"
         open={open}
       >
+        {/* Drawer Header with close button */}
         <DrawerHeader >
           <IconButton onClick={handleDrawerClose}>
             {theme.direction === 'rtl' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
           </IconButton>
         </DrawerHeader>
+
+        {/* Divider */}
         <Divider />
+
+        {/* Profile Section */}
+        <AppBar position="static" style={{ background: "transparent", padding: "20px 10px" }}>
+          <Toolbar variant="dense">
+            {/* Grid to align items */}
+            <Grid container alignItems="center" justifyContent="center" spacing={2}>
+              {/* Profile Image */}
+              <Grid item>
+                <img width={"80px"} height={"80px"} src="https://www.pngall.com/wp-content/uploads/12/Avatar-Profile-PNG-Photos.png" />
+              </Grid>
+              {/* Profile Text */}
+              <Grid item style={{ textAlign: 'center' }}>
+                <Typography variant="h6" color="black" component="div">
+                  {profileData.firstName} {profileData.lastName}
+                </Typography>
+                <Typography variant="h6" color="gray" component="div">
+                  {profileData.email}
+                </Typography>
+              </Grid>
+            </Grid>
+          </Toolbar>
+        </AppBar>
+
+        {/* Divider */}
+        <Divider />
+
+        {/* List of items */}
         <List>
-          {['Sing In', 'Log Out'].map((text, index) => (
+          {['Sign In', 'Log Out'].map((text, index) => (
             <ListItem key={text} disablePadding>
               <ListItemButton>
                 <ListItemIcon>
-                  {index % 2 === 0 ? <Link to="/sign-in">  <LoginIcon /></Link> : <LogoutIcon onClick={() => {
-                    localStorage.clear()
+                  {/* Conditional rendering of icons */}
+                  {index % 2 === 0 ? <Link to="/sign-in"><LoginIcon /></Link> : <LogoutIcon onClick={() => {
+                    localStorage.clear();
                     navigate("/sign-in");
-                  }
-                  }
-                  />}
+                  }} />}
                 </ListItemIcon>
+                {/* Text for each item */}
                 <ListItemText primary={text} />
               </ListItemButton>
             </ListItem>
